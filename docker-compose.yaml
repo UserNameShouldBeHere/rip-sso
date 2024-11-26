@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    volumes:
+      - ./src/main/java/nas/sso/db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root1234
+    networks:
+      - sso_network
+    restart: always
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    networks:
+      - sso_network
+    restart: always
+
+  sso:
+    container_name: sso
+    build:
+      dockerfile: ./Dockerfile
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: auth
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root1234
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    ports:
+      - 4001:4001
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - sso_network
+    restart: always
+
+networks:
+  sso_network:
+    driver: bridge

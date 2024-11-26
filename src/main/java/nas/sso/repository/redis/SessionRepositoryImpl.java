@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.Date;
 
 import javax.crypto.SecretKey;
+import org.springframework.stereotype.Component;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
@@ -13,13 +14,21 @@ import nas.sso.model.UserSession;
 import nas.sso.repository.SessionRepository;
 import redis.clients.jedis.UnifiedJedis;
 
+@Component
 public class SessionRepositoryImpl implements SessionRepository {
     private UnifiedJedis redis;
     private SecretKey key;
     private int sessionExpiration;
 
-    public SessionRepositoryImpl(final String connStr, final int sessionExpiration) {
-        redis = new UnifiedJedis(connStr);
+    public SessionRepositoryImpl(final int sessionExpiration) {
+        redis = new UnifiedJedis("redis://localhost:6379");
+
+        this.key = Jwts.SIG.HS256.key().build();
+        this.sessionExpiration = sessionExpiration;
+    }
+
+    public SessionRepositoryImpl(final String host, final String port, final int sessionExpiration) {
+        redis = new UnifiedJedis(String.format("redis://%s:%s", host, port));
 
         this.key = Jwts.SIG.HS256.key().build();
         this.sessionExpiration = sessionExpiration;

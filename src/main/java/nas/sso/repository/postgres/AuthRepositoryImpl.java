@@ -14,17 +14,26 @@ import javax.crypto.spec.PBEKeySpec;
 import javax.sql.DataSource;
 
 import org.postgresql.ds.PGSimpleDataSource;
+import org.springframework.stereotype.Component;
 
 import nas.sso.exception.PasswordHashException;
 import nas.sso.repository.AuthRepository;
 
+@Component
 public class AuthRepositoryImpl implements AuthRepository {
     private DataSource dataSource;
     private final int saltLength = 16;
 
-    public AuthRepositoryImpl(final String connStr) {
+    public AuthRepositoryImpl() {
         PGSimpleDataSource pgDataSource = new PGSimpleDataSource();
-        pgDataSource.setUrl(connStr);
+        pgDataSource.setUrl("jdbc:postgresql://localhost:5432/auth?user=postgres&password=postgres");
+        this.dataSource = pgDataSource;
+    }
+
+    public AuthRepositoryImpl(final String host, final String port, final String db, final String user, final String password) {
+        PGSimpleDataSource pgDataSource = new PGSimpleDataSource();
+        pgDataSource.setUrl(String.format("jdbc:postgresql://%s:%s/%s?user=%s&password=%s", 
+            host, port, db, user, password));
         this.dataSource = pgDataSource;
     }
 

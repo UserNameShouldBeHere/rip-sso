@@ -1,5 +1,7 @@
 create database auth;
 
+\c auth;
+
 create table if not exists users (
     id integer primary key generated always as identity,
     external_uuid uuid unique default gen_random_uuid() not null,
