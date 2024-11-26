@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+package sso;
+
+service SSO {
+    rpc SignIn(SignInRequest) returns (SignInResponse) {}
+    rpc SignUp(SignUpRequest) returns (SignUpResponse) {}
+    rpc Check(CheckRequest) returns (CheckResponse) {}
+    rpc HasUser(HasUserRequest) returns (HasUserResponse) {}
+    // rpc UpdatePassword() returns() {}
+    // rpc UpdateUsername() returns() {}
+}
+
+message SignInRequest {
+    string username = 1;
+    string password = 2;
+}
+
+message SignUpRequest {
+    string username = 1;
+    string password = 2;
+}
+
+message CheckRequest {
+    string token = 1;
+}
+
+message StatusResponse {
+    uint32 status = 1;
+}
+
+message HasUserRequest {
+    string username = 1;
+}
+
+message SignUpResponse {
+    StatusResponse respStatus = 1;
+    string token = 2;
+}
+
+message SignInResponse {
+    StatusResponse respStatus = 1;
+    string token = 2;
+}
+
+message CheckResponse {
+    StatusResponse respStatus = 1;
+    bool isValidSession = 2;
+}
+
+message HasUserResponse {
+    StatusResponse respStatus = 1;
+    bool hasUser = 2;
+}
