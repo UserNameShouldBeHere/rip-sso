@@ -5,20 +5,13 @@ import java.sql.SQLException;
 import org.lognet.springboot.grpc.GRpcService;
 
 import io.grpc.stub.StreamObserver;
+import nas.sso.exception.InvalidSessionException;
 import nas.sso.exception.PasswordHashException;
 import nas.sso.model.UserSession;
 import nas.sso.repository.AuthRepository;
 import nas.sso.repository.SessionRepository;
-import sso.CheckRequest;
-import sso.CheckResponse;
-import sso.HasUserRequest;
-import sso.HasUserResponse;
 import sso.SSOGrpc.SSOImplBase;
-import sso.SignInRequest;
-import sso.SignInResponse;
-import sso.SignUpRequest;
-import sso.SignUpResponse;
-import sso.StatusResponse;
+import sso.*;
 
 @GRpcService
 public class GrpcSSOServer extends SSOImplBase {
@@ -168,6 +161,106 @@ public class GrpcSSOServer extends SSOImplBase {
                 .build());
         }
         
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void updatePassword(UpdateRequest request, StreamObserver<UpdateResponse> responseObserver) {
+        responseObserver.onNext(UpdateResponse
+        .newBuilder()
+        .setRespStatus(StatusResponse
+            .newBuilder()
+            .setStatus(12)
+            .build())
+        .build());
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void updateUsername(UpdateRequest request, StreamObserver<UpdateResponse> responseObserver) {
+        responseObserver.onNext(UpdateResponse
+        .newBuilder()
+        .setRespStatus(StatusResponse
+            .newBuilder()
+            .setStatus(12)
+            .build())
+        .build());
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void logout(LogoutRequest request, StreamObserver<LogoutResponse> responseObserver) {
+        boolean state;
+        try {
+            state = this.sessionRepo.removeSession(request.getToken());
+        } catch (InvalidSessionException e) {
+            responseObserver.onNext(LogoutResponse
+            .newBuilder()
+            .setRespStatus(StatusResponse
+                .newBuilder()
+                .setStatus(16)
+                .build())
+            .build());
+            responseObserver.onCompleted();
+
+            return;
+        }
+
+        if (!state) {
+            responseObserver.onNext(LogoutResponse
+            .newBuilder()
+            .setRespStatus(StatusResponse
+                .newBuilder()
+                .setStatus(16)
+                .build())
+            .build());
+        } else {
+            responseObserver.onNext(LogoutResponse
+            .newBuilder()
+            .setRespStatus(StatusResponse
+                .newBuilder()
+                .setStatus(0)
+                .build())
+            .build());
+        }
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void logoutAll(LogoutRequest request, StreamObserver<LogoutResponse> responseObserver) {
+        boolean state;
+        try {
+            state = this.sessionRepo.removeAllSessions(request.getToken());
+        } catch (InvalidSessionException e) {
+            responseObserver.onNext(LogoutResponse
+            .newBuilder()
+            .setRespStatus(StatusResponse
+                .newBuilder()
+                .setStatus(16)
+                .build())
+            .build());
+            responseObserver.onCompleted();
+
+            return;
+        }
+
+        if (!state) {
+            responseObserver.onNext(LogoutResponse
+            .newBuilder()
+            .setRespStatus(StatusResponse
+                .newBuilder()
+                .setStatus(16)
+                .build())
+            .build());
+        } else {
+            responseObserver.onNext(LogoutResponse
+            .newBuilder()
+            .setRespStatus(StatusResponse
+                .newBuilder()
+                .setStatus(0)
+                .build())
+            .build());
+        }
         responseObserver.onCompleted();
     }
 }

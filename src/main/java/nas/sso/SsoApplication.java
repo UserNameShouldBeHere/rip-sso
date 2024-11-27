@@ -5,8 +5,8 @@ import java.util.Map;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import nas.sso.repository.postgres.AuthRepositoryImpl;
-import nas.sso.repository.redis.SessionRepositoryImpl;
+import nas.sso.repository.postgres.*;
+import nas.sso.repository.redis.*;
 import nas.sso.grpc.GrpcSSOServer;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;

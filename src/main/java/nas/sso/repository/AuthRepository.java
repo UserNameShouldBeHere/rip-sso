@@ -9,5 +9,7 @@ public interface AuthRepository {
     boolean hasUser(final String name);
     boolean checkPassword(final String name, final String givenPassword) throws SQLException, PasswordHashException;
     String getUserUuid(final String name) throws SQLException;
-    // void removeUser
+    // void updateUsername
+    // void updatePassword
+    // void removeUser (final String name) throws SQLException; // SAGA or outbox
 }

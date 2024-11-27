@@ -8,8 +8,10 @@ service SSO {
     rpc SignUp(SignUpRequest) returns (SignUpResponse) {}
     rpc Check(CheckRequest) returns (CheckResponse) {}
     rpc HasUser(HasUserRequest) returns (HasUserResponse) {}
-    // rpc UpdatePassword() returns() {}
-    // rpc UpdateUsername() returns() {}
+    rpc UpdatePassword(UpdateRequest) returns (UpdateResponse) {}
+    rpc UpdateUsername(UpdateRequest) returns (UpdateResponse) {}
+    rpc Logout(LogoutRequest) returns (LogoutResponse) {}
+    rpc LogoutAll(LogoutRequest) returns (LogoutResponse) {}
 }
 
 message SignInRequest {
@@ -34,6 +36,15 @@ message HasUserRequest {
     string username = 1;
 }
 
+message UpdateRequest {
+    string targetUuid = 1;
+    string newValue = 2;
+}
+
+message LogoutRequest {
+    string token = 1;
+}
+
 message SignUpResponse {
     StatusResponse respStatus = 1;
     string token = 2;
@@ -52,4 +63,12 @@ message CheckResponse {
 message HasUserResponse {
     StatusResponse respStatus = 1;
     bool hasUser = 2;
+}
+
+message UpdateResponse {
+    StatusResponse respStatus = 1;
+}
+
+message LogoutResponse {
+    StatusResponse respStatus = 1;
 }

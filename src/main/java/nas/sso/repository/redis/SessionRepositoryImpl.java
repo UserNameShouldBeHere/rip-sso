@@ -10,6 +10,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
+import nas.sso.exception.InvalidSessionException;
 import nas.sso.model.UserSession;
 import nas.sso.repository.SessionRepository;
 import redis.clients.jedis.UnifiedJedis;
@@ -44,13 +45,35 @@ public class SessionRepositoryImpl implements SessionRepository {
     }
 
     @Override
-    public void removeSession(String userName, String token) {
-        redis.srem(userName, token);
+    public boolean removeSession(final String token) throws InvalidSessionException {
+        Jws<Claims> claims;
+        try {
+            claims = validateToken(token);
+        } catch (JwtException | IllegalArgumentException e) {
+            throw new InvalidSessionException(e.getMessage());
+        }
+
+        long res = redis.srem(claims.getPayload().get("username").toString(), token);
+
+        return res > 0;
     }
 
     @Override
-    public void removeSessions(String userName) {
-        redis.del(userName);
+    public boolean removeAllSessions(final String token) throws InvalidSessionException {
+        Jws<Claims> claims;
+        try {
+            claims = validateToken(token);
+        } catch (JwtException | IllegalArgumentException e) {
+            throw new InvalidSessionException(e.getMessage());
+        }
+
+        if (!this.redis.sismember(claims.getPayload().get("username").toString(), token)) {
+            return false;
+        } else {
+            long res = redis.del(claims.getPayload().get("username").toString());
+
+            return res > 0;
+        }
     }
 
     @Override
@@ -66,7 +89,7 @@ public class SessionRepositoryImpl implements SessionRepository {
 
     private Jws<Claims> validateToken(final String token) throws JwtException, IllegalArgumentException {
         return Jwts.parser()
-            .verifyWith(key)
+            .verifyWith(this.key)
             .build()
             .parseSignedClaims(token);
     }
@@ -78,8 +101,8 @@ public class SessionRepositoryImpl implements SessionRepository {
             .claim("username", userName)
             .claim("version", version)
             .issuedAt(Date.from(Instant.now()))
-            .expiration(Date.from(Instant.now().plusSeconds(sessionExpiration)))
-            .signWith(key)
+            .expiration(Date.from(Instant.now().plusSeconds(this.sessionExpiration)))
+            .signWith(this.key)
             .compact();
 
         return jwt;
