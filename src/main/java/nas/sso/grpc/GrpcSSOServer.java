@@ -8,6 +8,7 @@ import io.grpc.stub.StreamObserver;
 import nas.sso.exception.InvalidSessionException;
 import nas.sso.exception.PasswordHashException;
 import nas.sso.model.UserSession;
+import nas.sso.model.TokenPayload;
 import nas.sso.repository.AuthRepository;
 import nas.sso.repository.SessionRepository;
 import sso.SSOGrpc.SSOImplBase;
@@ -25,16 +26,33 @@ public class GrpcSSOServer extends SSOImplBase {
 
     @Override
     public void check(CheckRequest request, StreamObserver<CheckResponse> responseObserver) {
-        boolean isValidSession = sessionRepo.check(request.getToken());
+        try {
+            TokenPayload tokenPayload = sessionRepo.check(request.getToken());
 
-        responseObserver.onNext(CheckResponse
-        .newBuilder()
-        .setRespStatus(StatusResponse
+            responseObserver.onNext(CheckResponse
             .newBuilder()
-            .setStatus(0)
-            .build())
-        .setIsValidSession(isValidSession)
-        .build());
+            .setRespStatus(StatusResponse
+                .newBuilder()
+                .setStatus(0)
+                .build())
+            .setIsValidSession(tokenPayload.isTokenValid())
+            .setPayload(
+                sso.TokenPayload
+                    .newBuilder()
+                    .setUuid(tokenPayload.getUuid())
+                    .setUsername(tokenPayload.getUsername())
+                    .build()
+            )
+            .build());
+        } catch (InvalidSessionException e) {
+            responseObserver.onNext(CheckResponse
+            .newBuilder()
+            .setRespStatus(StatusResponse
+                .newBuilder()
+                .setStatus(3)
+                .build())
+            .build());
+        }
         responseObserver.onCompleted();
     }
 
@@ -258,6 +276,31 @@ public class GrpcSSOServer extends SSOImplBase {
             .setRespStatus(StatusResponse
                 .newBuilder()
                 .setStatus(0)
+                .build())
+            .build());
+        }
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void getUserUUIDByName(GetUserUUIDByNameRequest request, StreamObserver<GetUserUUIDByNameResponse> responseObserver) {
+        try {
+            String userUuid = this.authRepo.getUserUuid(request.getUsername());
+
+            responseObserver.onNext(GetUserUUIDByNameResponse
+            .newBuilder()
+            .setRespStatus(StatusResponse
+                .newBuilder()
+                .setStatus(0)
+                .build())
+            .setUserUuid(userUuid)
+            .build());
+        } catch (SQLException e) {
+            responseObserver.onNext(GetUserUUIDByNameResponse
+            .newBuilder()
+            .setRespStatus(StatusResponse
+                .newBuilder()
+                .setStatus(5)
                 .build())
             .build());
         }

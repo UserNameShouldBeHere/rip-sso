@@ -12,6 +12,8 @@ service SSO {
     rpc UpdateUsername(UpdateRequest) returns (UpdateResponse) {}
     rpc Logout(LogoutRequest) returns (LogoutResponse) {}
     rpc LogoutAll(LogoutRequest) returns (LogoutResponse) {}
+    rpc GetUserUUIDByName(GetUserUUIDByNameRequest) returns (GetUserUUIDByNameResponse) {}
+    // rpc GetUserData(GetUserDataRequest) returns (GetUserDataResponse) {}
 }
 
 message SignInRequest {
@@ -45,6 +47,10 @@ message LogoutRequest {
     string token = 1;
 }
 
+message GetUserUUIDByNameRequest {
+    string username = 1;
+}
+
 message SignUpResponse {
     StatusResponse respStatus = 1;
     string token = 2;
@@ -55,9 +61,15 @@ message SignInResponse {
     string token = 2;
 }
 
+message TokenPayload {
+    string uuid = 1;
+    string username = 2;
+}
+
 message CheckResponse {
     StatusResponse respStatus = 1;
     bool isValidSession = 2;
+    TokenPayload payload = 3;
 }
 
 message HasUserResponse {
@@ -71,4 +83,9 @@ message UpdateResponse {
 
 message LogoutResponse {
     StatusResponse respStatus = 1;
+}
+
+message GetUserUUIDByNameResponse {
+    StatusResponse respStatus = 1;
+    string userUuid = 2;
 }

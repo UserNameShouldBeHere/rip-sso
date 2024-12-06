@@ -11,6 +11,7 @@ import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import nas.sso.exception.InvalidSessionException;
+import nas.sso.model.TokenPayload;
 import nas.sso.model.UserSession;
 import nas.sso.repository.SessionRepository;
 import redis.clients.jedis.UnifiedJedis;
@@ -77,13 +78,19 @@ public class SessionRepositoryImpl implements SessionRepository {
     }
 
     @Override
-    public boolean check(final String token) {
+    public TokenPayload check(final String token) throws InvalidSessionException {
         try {
             Jws<Claims> claims = validateToken(token);
             
-            return this.redis.sismember(claims.getPayload().get("username").toString(), token);
+            TokenPayload tokenPayload = new TokenPayload(
+                this.redis.sismember(claims.getPayload().get("username").toString(), token),
+                claims.getPayload().get("uuid").toString(),
+                claims.getPayload().get("username").toString()
+            );
+
+            return tokenPayload;
         } catch (JwtException | IllegalArgumentException e) {
-            return false;
+            throw new InvalidSessionException(e.getMessage());
         }
     }
 
